@@ -1,0 +1,5 @@
+{
+  "name": "WireGuard Config Generator",
+  "description": "A sleek, modern interface for generating WireGuard configurations with one-click key generation and server selection.",
+  "requestFramePermissions": []
+}
