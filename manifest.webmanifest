@@ -1,0 +1,16 @@
+{
+  "short_name": "WG Config",
+  "name": "WireGuard Config Generator",
+  "description": "A sleek, modern interface for generating WireGuard configurations with one-click key generation and server selection.",
+  "icons": [
+    {
+      "src": "/PWA.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a0a0a"
+}
