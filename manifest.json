@@ -4,7 +4,7 @@
   "description": "A sleek, modern interface for generating WireGuard configurations with one-click key generation and server selection.",
   "icons": [
     {
-      "src": "/PWA.png",
+      "src": "./PWA.png",
       "sizes": "512x512",
       "type": "image/png"
     }
