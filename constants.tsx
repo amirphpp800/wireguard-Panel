@@ -1,3 +1,4 @@
+
 import type { ServerLocation } from './types';
 
 // NOTE: These are example values. In a real application,
@@ -25,4 +26,24 @@ export const DNS_PRESETS: Record<string, string> = {
   'OpenDNS': '208.67.222.222, 208.67.220.220',
   'Shekan': '178.22.122.100, 185.51.200.2',
   'Shekan Pro': '178.22.122.101, 185.51.200.1',
+};
+
+export const PREDEFINED_INTERFACE_ADDRESSES: Record<string, string[]> = {
+  ipv4: [
+    '10.10.10.2/24',
+    '10.20.30.15/24',
+    '192.168.1.100/24',
+    '192.168.50.25/24',
+    '172.16.5.10/24',
+    '10.0.0.2/24',
+    '192.168.100.10/24',
+  ],
+  ipv6: [
+    'fd12:3456:789a:1::2/64',
+    'fd00:abcd:1234:5678::2/64',
+    'fd10:20ff:abcd::5/64',
+    'fdff:0000:0000:0001::10/64',
+    'fd99:8888:7777::3/64',
+    'fd86:ea04:ffff::2/64',
+  ],
 };
