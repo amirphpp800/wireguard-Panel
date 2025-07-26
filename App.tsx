@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { INITIAL_LOCATIONS, DNS_PRESETS } from './constants';
+import { INITIAL_LOCATIONS, DNS_PRESETS, PREDEFINED_INTERFACE_ADDRESSES } from './constants';
 import type { ServerLocation } from './types';
 
 // Declare nacl for TypeScript since it's loaded from a script tag
@@ -84,8 +84,8 @@ const App: React.FC = () => {
     const [isGodMode, setIsGodMode] = useState(false);
     
     // God Mode State
-    const [interfaceIpv4, setInterfaceIpv4] = useState('10.8.0.2/24');
-    const [interfaceIpv6, setInterfaceIpv6] = useState('fddd:2c4:2c4:2c4::2/64');
+    const [selectedInterfaceAddresses, setSelectedInterfaceAddresses] = useState<string[]>(['10.10.10.2/24', 'fd12:3456:789a:1::2/64']);
+    const [customAddress, setCustomAddress] = useState('');
     const [dnsServers, setDnsServers] = useState('1.1.1.1, 1.0.0.1');
     const [allowedIPs, setAllowedIPs] = useState('0.0.0.0/0, ::/0');
     const [mtu, setMtu] = useState('1420');
@@ -171,7 +171,7 @@ const App: React.FC = () => {
             return;
         }
 
-        const interfaceAddresses = [interfaceIpv4, interfaceIpv6].filter(Boolean).join(', ');
+        const interfaceAddresses = selectedInterfaceAddresses.join(', ');
 
         const interfaceSection = [
             '[Interface]',
@@ -272,6 +272,25 @@ const App: React.FC = () => {
         reader.readAsText(file);
         // Reset file input value to allow re-uploading the same file
         event.target.value = '';
+    };
+
+    const handleAddressRemove = (addressToRemove: string) => {
+        setSelectedInterfaceAddresses(prev => prev.filter(a => a !== addressToRemove));
+    };
+
+    const handleAddPredefinedAddress = (addressToAdd: string) => {
+        if (!selectedInterfaceAddresses.includes(addressToAdd)) {
+            setSelectedInterfaceAddresses(prev => [...prev, addressToAdd]);
+        }
+    };
+
+    const handleAddCustomAddress = () => {
+        const trimmedAddress = customAddress.trim();
+        // Basic validation: not empty and not a duplicate
+        if (trimmedAddress && !selectedInterfaceAddresses.includes(trimmedAddress)) {
+            setSelectedInterfaceAddresses(prev => [...prev, trimmedAddress]);
+            setCustomAddress(''); // Clear input
+        }
     };
 
     const godModeButtonClasses = isGodMode
@@ -437,12 +456,80 @@ const App: React.FC = () => {
                             <div className="space-y-4 p-4 border border-neutral-700 rounded-none">
                                 <h4 className="font-bold text-neutral-300">Interface Settings</h4>
                                 <div>
-                                    <label htmlFor="ipv4_address" className={labelClasses}>Interface IPv4 Address</label>
-                                    <input id="ipv4_address" value={interfaceIpv4} onChange={e => setInterfaceIpv4(e.target.value)} className={godModeInputClasses} placeholder="e.g., 10.8.0.2/24" />
-                                </div>
-                                <div>
-                                    <label htmlFor="ipv6_address" className={labelClasses}>Interface IPv6 Address</label>
-                                    <input id="ipv6_address" value={interfaceIpv6} onChange={e => setInterfaceIpv6(e.target.value)} className={godModeInputClasses} placeholder="e.g., fddd:2c4::2/64" />
+                                    <label className={labelClasses}>Interface Addresses</label>
+                                    <div className="p-2 bg-neutral-950 border border-neutral-600 rounded-none min-h-[4rem] flex flex-wrap gap-2 items-start">
+                                        {selectedInterfaceAddresses.length === 0 && (
+                                            <span className="text-neutral-500 text-sm p-2">Select or add addresses below.</span>
+                                        )}
+                                        {selectedInterfaceAddresses.map(addr => (
+                                            <div key={addr} className="flex items-center gap-1.5 bg-brand-blue text-white text-xs font-mono rounded-none px-2 py-1">
+                                                <span>{addr}</span>
+                                                <button 
+                                                    onClick={() => handleAddressRemove(addr)} 
+                                                    className="font-sans font-bold text-blue-200 hover:text-white leading-none"
+                                                    title={`Remove ${addr}`}
+                                                    aria-label={`Remove ${addr}`}
+                                                >
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <input 
+                                            type="text" 
+                                            value={customAddress} 
+                                            onChange={e => setCustomAddress(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddCustomAddress()}
+                                            className={godModeInputClasses + " flex-grow"}
+                                            placeholder="e.g., 10.99.99.1/32"
+                                        />
+                                        <button onClick={handleAddCustomAddress} className="px-4 py-2 text-sm bg-neutral-700 text-neutral-300 rounded-none border border-neutral-600 hover:bg-neutral-600 transition-colors whitespace-nowrap">
+                                            Add Custom
+                                        </button>
+                                    </div>
+
+                                    <div className="mt-4 space-y-3">
+                                        <div>
+                                            <p className="text-xs font-semibold text-neutral-400 mb-2">Predefined IPv4</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {PREDEFINED_INTERFACE_ADDRESSES.ipv4.map(addr => (
+                                                    <button
+                                                        key={addr}
+                                                        onClick={() => handleAddPredefinedAddress(addr)}
+                                                        disabled={selectedInterfaceAddresses.includes(addr)}
+                                                        className={`px-3 py-1 text-xs rounded-none border transition-colors font-mono ${
+                                                            selectedInterfaceAddresses.includes(addr)
+                                                                ? 'bg-neutral-600 text-neutral-400 border-neutral-700 cursor-not-allowed'
+                                                                : 'bg-neutral-700 text-neutral-300 border-neutral-600 hover:bg-neutral-600'
+                                                        }`}
+                                                    >
+                                                        + {addr}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-neutral-400 mb-2">Predefined IPv6</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {PREDEFINED_INTERFACE_ADDRESSES.ipv6.map(addr => (
+                                                    <button
+                                                        key={addr}
+                                                        onClick={() => handleAddPredefinedAddress(addr)}
+                                                        disabled={selectedInterfaceAddresses.includes(addr)}
+                                                        className={`px-3 py-1 text-xs rounded-none border transition-colors font-mono ${
+                                                            selectedInterfaceAddresses.includes(addr)
+                                                                ? 'bg-neutral-600 text-neutral-400 border-neutral-700 cursor-not-allowed'
+                                                                : 'bg-neutral-700 text-neutral-300 border-neutral-600 hover:bg-neutral-600'
+                                                        }`}
+                                                    >
+                                                        + {addr}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label htmlFor="dns" className={labelClasses}>DNS Servers</label>
